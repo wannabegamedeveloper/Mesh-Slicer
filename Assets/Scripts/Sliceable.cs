@@ -22,14 +22,12 @@ public class Sliceable : MonoBehaviour
 
     public void Separate()
     {
-        _originalMeshVertices = GetComponent<MeshFilter>().mesh.vertices;
-
-        var position = _transform.position;
-        cutPoints[0] -= position;
-        cutPoints[1] -= position;
-        var localScale = _transform.localScale;
-        cutPoints[0] *= 1f / localScale.x;
-        cutPoints[1] *= 1f / localScale.x;
+        var originalMesh = GetComponent<MeshFilter>().mesh;
+        
+        var localToWorld = transform.localToWorldMatrix;
+        _originalMeshVertices = originalMesh.vertices;
+        for (int i = 0; i < originalMesh.vertices.Length; i++)
+            _originalMeshVertices[i] = localToWorld.MultiplyPoint3x4(originalMesh.vertices[i]);
         
         SpawnNewMesh();
 
@@ -54,14 +52,17 @@ public class Sliceable : MonoBehaviour
         _meshFilter1.mesh.RecalculateNormals();
         _meshFilter2.mesh.RecalculateNormals();
         
+        Destroy(gameObject);
         if (!addRigidbody) return;
         SeparationForce();
     }
 
     private void SpawnNewMesh()
     {
-        _meshFilter1 = GetComponent<MeshFilter>();
-        var secondPart = Instantiate(gameObject, _transform.position, Quaternion.identity);
+        var firstPart = Instantiate(quad, Vector3.zero, Quaternion.identity);
+        _meshFilter1 = firstPart.GetComponent<MeshFilter>();
+        
+        var secondPart = Instantiate(quad, Vector3.zero, Quaternion.identity);
         _meshFilter2 = secondPart.GetComponent<MeshFilter>();
     }
 
@@ -88,26 +89,26 @@ public class Sliceable : MonoBehaviour
     {
         mesh1.uv = uv1;
         mesh1.triangles = triangles1;
+        
         mesh2.uv = uv2;
         mesh2.triangles = triangles2;
     }
 
     private Vector3[] CreateSide(int side, IList<Vector2> uv)
     {
-        var point1 = new Vector3(cutPoints[0].x, cutPoints[0].y);
-        var point2 = new Vector2(cutPoints[1].x, cutPoints[1].y);
-        var closestVertex1 = GetClosestVertexPosition(point1, side);
-        var closestVertex2 = GetClosestVertexPosition(point2, side);
-        
+        var closestVertex1 = GetClosestVertexPosition(cutPoints[0], side);
+        var closestVertex2 = GetClosestVertexPosition(cutPoints[1], side);
+
         uv[0] = new Vector2(0, 0);
         uv[1] = new Vector2(1, 0);
         uv[2] = new Vector2(1, 1);
         uv[3] = new Vector2(0, 1);
+
+        _vert[0] = closestVertex1;
+        _vert[1] = cutPoints[0];
+        _vert[2] = cutPoints[1];
+        _vert[3] = closestVertex2;
         
-        _vert[0] = new Vector3(closestVertex1.x, closestVertex1.y);
-        _vert[1] = new Vector3(cutPoints[0].x, cutPoints[0].y);
-        _vert[2] = new Vector3(cutPoints[1].x, cutPoints[1].y);
-        _vert[3] = new Vector3(closestVertex2.x, closestVertex2.y);
         return _vert;
     }
 
@@ -116,6 +117,9 @@ public class Sliceable : MonoBehaviour
         _meshFilter1.AddComponent<Rigidbody>();
         _meshFilter2.AddComponent<Rigidbody>();
         
+        _meshFilter1.AddComponent<MeshCollider>().convex = true;
+        _meshFilter2.AddComponent<MeshCollider>().convex = true;
+            
         var rig1 = _meshFilter1.GetComponent<Rigidbody>();
         var rig2 = _meshFilter2.GetComponent<Rigidbody>();
         
@@ -143,13 +147,6 @@ public class Sliceable : MonoBehaviour
 
     private static int GetVertexDirection(Vector3 point, Vector3 target)
     {
-        return point.x - target.x > point.y - target.y ? 0 : 1;
-    }
-
-    private void TestMesh()
-    {
-        var mesh = new Mesh();
-        
-        
+        return point.x - target.x > target.y - point.y ? 0 : 1;
     }
 }

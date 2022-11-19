@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class SlicerController : MonoBehaviour
@@ -6,11 +7,34 @@ public class SlicerController : MonoBehaviour
     private bool _entered;
     private Vector3 _endPoint;
     private Sliceable _hitObject;
+    private bool _draw1;
+    private bool _draw2;
+    private Vector3 _position;
+    private Vector3 _position2;
+    private Transform _transform;
+    
+    private void Start()
+    {
+        _transform = transform;
+    }
 
     private void OnDrawGizmos()
     {
-        if (_hitObject)
-            Gizmos.DrawSphere(_hitObject.cutPoints[0], .1f);
+        if (!_draw1) return;
+        Gizmos.DrawSphere(_position, .01f);
+
+        if (_draw2)
+        {
+            Gizmos.color = Color.blue;
+            //Gizmos.DrawSphere(_position2, .01f);
+        }
+
+
+        var hitCollider = _hitObject.GetComponent<Collider>();
+
+        var closestLocation = hitCollider.ClosestPoint(_hitObject.cutPoints[1]);
+        
+        Gizmos.DrawSphere(closestLocation, .01f);
     }
 
     private void Update()
@@ -28,9 +52,13 @@ public class SlicerController : MonoBehaviour
                         _hitObject = hit.transform.GetComponent<Sliceable>();
                         _hitObject.cutPoints[0] = hit.point;
                         _entered = true;
+                        _draw1 = true;
+                        _position = _hitObject.cutPoints[0];
                     }
 
                     _endPoint = hit.point;
+                    _draw2 = true;
+                    _position2 = _endPoint;
                 }
                 else
                 {
