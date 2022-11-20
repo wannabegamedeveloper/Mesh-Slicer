@@ -28,13 +28,6 @@ public class SlicerController : MonoBehaviour
             Gizmos.color = Color.blue;
             //Gizmos.DrawSphere(_position2, .01f);
         }
-
-
-        var hitCollider = _hitObject.GetComponent<Collider>();
-
-        var closestLocation = hitCollider.ClosestPoint(_hitObject.cutPoints[1]);
-        
-        Gizmos.DrawSphere(closestLocation, .01f);
     }
 
     private void Update()
