@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Sliceable : MonoBehaviour
+public class SliceablePlane : MonoBehaviour
 {
     public Vector3[] cutPoints;
     [SerializeField] private GameObject quad;

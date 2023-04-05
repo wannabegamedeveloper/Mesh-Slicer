@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
 
-public class SlicerController : MonoBehaviour
+public class SlicerControllerPlane : MonoBehaviour
 {
     private bool _startSlicing;
     private bool _entered;
     private Vector3 _endPoint;
-    private Sliceable _hitObject;
+    private SliceablePlane _hitObject;
     private bool _draw1;
     private bool _draw2;
     private Vector3 _position;
@@ -40,9 +40,9 @@ public class SlicerController : MonoBehaviour
 
                 if (Physics.Raycast(ray, out var hit))
                 {
-                    if (hit.transform.GetComponent<Sliceable>() && !_entered)
+                    if (hit.transform.GetComponent<SliceablePlane>() && !_entered)
                     {
-                        _hitObject = hit.transform.GetComponent<Sliceable>();
+                        _hitObject = hit.transform.GetComponent<SliceablePlane>();
                         _hitObject.cutPoints[0] = hit.point;
                         _entered = true;
                         _draw1 = true;
